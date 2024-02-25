@@ -7,16 +7,22 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jirawan-chuapradit/cards_assignment/models/response"
+	"github.com/jirawan-chuapradit/cards_assignment/service"
 )
 
 type CardsHandler interface {
 	FindById(ctx *gin.Context)
 }
 
-type cardsHandler struct{}
+type cardsHandler struct {
+	cardsService service.CardsService
+}
 
 func NewCardsHandler() CardsHandler {
-	return &cardsHandler{}
+	cardsServ := service.NewCardsService()
+	return &cardsHandler{
+		cardsService: cardsServ,
+	}
 }
 
 func (h *cardsHandler) FindById(ctx *gin.Context) {
@@ -27,8 +33,12 @@ func (h *cardsHandler) FindById(ctx *gin.Context) {
 		return
 	}
 
-	// TODO: call service
-	_ = id
+	cardDetails, err := h.cardsService.FindById(id)
+	if err != nil {
+		log.Println(err)
+		return
+	}
+	_ = cardDetails
 
 	webResponse := response.Response{
 		Code:   http.StatusOK,
