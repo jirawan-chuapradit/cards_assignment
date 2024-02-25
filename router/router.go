@@ -5,7 +5,7 @@ import (
 	"github.com/jirawan-chuapradit/cards_assignment/handler"
 )
 
-func setupRouter() *gin.Engine {
+func Setup() *gin.Engine {
 
 	r := gin.Default()
 
@@ -15,6 +15,7 @@ func setupRouter() *gin.Engine {
 	cardsRouter := baseRouter.Group("/cards")
 
 	_ = cardsRouter
-
+	cardHandler := handler.NewCardsHandler()
+	cardsRouter.GET("/:cardId", cardHandler.FindById)
 	return r
 }

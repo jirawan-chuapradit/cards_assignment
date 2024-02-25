@@ -10,7 +10,7 @@ import (
 )
 
 type CardsHandler interface {
-	FindById(ctx *gin.Context) error
+	FindById(ctx *gin.Context)
 }
 
 type cardsHandler struct{}
@@ -19,12 +19,12 @@ func NewCardsHandler() CardsHandler {
 	return &cardsHandler{}
 }
 
-func (h *cardsHandler) FindById(ctx *gin.Context) error {
+func (h *cardsHandler) FindById(ctx *gin.Context) {
 	cardId := ctx.Param("cardId")
 	id, err := strconv.Atoi(cardId)
-	if err != nil {
+	if err != nil { // TODO: handle
 		log.Println(err)
-		return err
+		return
 	}
 
 	// TODO: call service
@@ -43,5 +43,4 @@ func (h *cardsHandler) FindById(ctx *gin.Context) error {
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, webResponse)
-	return nil
 }
