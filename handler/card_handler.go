@@ -16,6 +16,7 @@ type CardsHandler interface {
 	FindById(ctx *gin.Context)
 	FindAll(ctx *gin.Context)
 	Create(ctx *gin.Context)
+	Update(ctx *gin.Context)
 }
 
 type cardsHandler struct {
@@ -131,5 +132,62 @@ func (h *cardsHandler) Create(ctx *gin.Context) {
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusCreated, webResponse)
+
+}
+
+func (h *cardsHandler) Update(ctx *gin.Context) {
+	updateCardRequest := request.UpdateCardRequestBody{}
+	err := ctx.ShouldBindJSON(&updateCardRequest)
+	if err != nil {
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not create cards because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+	}
+
+	cardId := ctx.Param("cardId")
+	objID, err := primitive.ObjectIDFromHex(cardId)
+	if err != nil { // TODO: handle
+		log.Println(err)
+		return
+	}
+
+	// validate
+	if updateCardRequest.ID != objID {
+		log.Printf("expected card %s, got %s", updateCardRequest.ID.Hex(), objID.Hex())
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Ok",
+			Data:   "invalid request",
+		}
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, webResponse)
+		return
+	}
+	// service
+	if err := h.cardsService.Update(ctx, updateCardRequest); err != nil {
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not update card because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
+	}
+	webResponse := response.Response{
+		Code:   http.StatusOK,
+		Status: "Ok",
+		Data:   "update successfully",
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, webResponse)
 
 }
