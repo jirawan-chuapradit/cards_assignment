@@ -1,19 +1,28 @@
 package service
 
-import "github.com/jirawan-chuapradit/cards_assignment/models"
+import (
+	"context"
+
+	"github.com/jirawan-chuapradit/cards_assignment/models"
+	"github.com/jirawan-chuapradit/cards_assignment/repository"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+)
 
 type CardsService interface {
-	FindById(cardsId int) (models.CardsDetail, error)
+	FindById(ctx context.Context, cardsId primitive.ObjectID) (models.CardsDetail, error)
 }
 
-type cardsService struct{}
-
-func NewCardsService() CardsService {
-	return &cardsService{}
+type cardsService struct {
+	cardsRepository repository.CardsRepository
 }
 
-func (s *cardsService) FindById(cardsId int) (models.CardsDetail, error) {
+func NewCardsService(cardsRepository repository.CardsRepository) CardsService {
+	return &cardsService{
+		cardsRepository: cardsRepository,
+	}
+}
+
+func (s *cardsService) FindById(ctx context.Context, cardsId primitive.ObjectID) (models.CardsDetail, error) {
 	// repository
-
-	return models.CardsDetail{}, nil
+	return s.cardsRepository.FindById(ctx, cardsId)
 }
