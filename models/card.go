@@ -14,4 +14,14 @@ type CardsDetail struct {
 	CreatedBy   string             `json:"created_by" bson:"created_by"`
 	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
 	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
+	Comments    []Comment          `json:"comments" bson:"comments"`
+}
+
+type Comment struct {
+	ID          primitive.ObjectID `json:"id" bson:"_id,omitempty"`
+	Img         string             `json:"img" bson:"img"`
+	Description string             `json:"description" bson:"description"`
+	CreatedBy   string             `json:"created_by" bson:"created_by"`
+	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
+	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
 }
