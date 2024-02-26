@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jirawan-chuapradit/cards_assignment/models/request"
 	"github.com/jirawan-chuapradit/cards_assignment/models/response"
 	"github.com/jirawan-chuapradit/cards_assignment/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -14,6 +15,7 @@ import (
 type CardsHandler interface {
 	FindById(ctx *gin.Context)
 	FindAll(ctx *gin.Context)
+	Create(ctx *gin.Context)
 }
 
 type cardsHandler struct {
@@ -92,4 +94,42 @@ func (h *cardsHandler) FindAll(ctx *gin.Context) {
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, webResponse)
+}
+
+func (h *cardsHandler) Create(ctx *gin.Context) {
+	createCardRequest := request.CreateCardRequestBody{}
+	err := ctx.ShouldBindJSON(&createCardRequest)
+	if err != nil {
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not create cards because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+	}
+
+	card, err := h.cardsService.Create(ctx, createCardRequest)
+	if err != nil {
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not create cards because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+	}
+
+	webResponse := response.Response{
+		Code:   http.StatusCreated,
+		Status: "Ok",
+		Data:   card,
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusCreated, webResponse)
+
 }

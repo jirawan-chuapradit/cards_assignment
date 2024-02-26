@@ -31,6 +31,7 @@ func Setup(conn *mongo.Client) *gin.Engine {
 	cardRouter := baseRouter.Group("/cards")
 	cardRouter.GET("", cardHandler.FindAll)
 	cardRouter.GET("/:cardId", cardHandler.FindById)
+	cardRouter.POST("", cardHandler.Create)
 
 	cardsHistoryRouter := cardRouter.Group("/history")
 	cardsHistoryRouter.GET("/:cardId", cardsHistoryHandler.FindHistoryById)
