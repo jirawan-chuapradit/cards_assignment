@@ -12,9 +12,9 @@ type CardsDetail struct {
 	Description string             `json:"description" bson:"description"`
 	Status      string             `json:"status" bson:"status"`
 	CreatedBy   string             `json:"created_by" bson:"created_by"`
-	CreatedAt   time.Time          `json:"created_at" bson:"created_at"`
-	UpdatedAt   time.Time          `json:"updated_at" bson:"updated_at"`
-	Comments    []Comment          `json:"comments" bson:"comments"`
+	CreatedAt   *time.Time         `json:"created_at,omitempty" bson:"created_at,omitempty"`
+	UpdatedAt   *time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
+	Comments    []*Comment         `json:"comments,omitempty" bson:"comments,omitempty"`
 }
 
 type Comment struct {

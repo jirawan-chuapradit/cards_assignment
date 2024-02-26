@@ -12,6 +12,7 @@ import (
 type CardsRepository interface {
 	FindById(ctx context.Context, cardsId primitive.ObjectID) (cardsDetails models.CardsDetail, err error)
 	FindAll(ctx context.Context) ([]models.CardsDetail, error)
+	Create(ctx context.Context, card models.CardsDetail) (models.CardsDetail, error)
 }
 
 type cardsRepository struct {
@@ -46,4 +47,15 @@ func (r *cardsRepository) FindAll(ctx context.Context) ([]models.CardsDetail, er
 		return cards, err
 	}
 	return cards, nil
+}
+
+// create card
+func (r *cardsRepository) Create(ctx context.Context, card models.CardsDetail) (models.CardsDetail, error) {
+	result, err := r.CardsAssignmentDatabase.Collection("cards").InsertOne(ctx, card)
+	if err != nil {
+		return card, err
+	}
+
+	card.ID = result.InsertedID.(primitive.ObjectID)
+	return card, nil
 }
