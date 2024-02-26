@@ -34,6 +34,9 @@ func Setup(conn *mongo.Client) *gin.Engine {
 	cardRouter.POST("", cardHandler.Create)
 	cardRouter.PUT("/:cardId", cardHandler.Update)
 
+	archiveRouter := cardRouter.Group("/archive")
+	archiveRouter.POST("/:cardId", cardHandler.Store)
+
 	cardsHistoryRouter := cardRouter.Group("/history")
 	cardsHistoryRouter.GET("/:cardId", cardsHistoryHandler.FindHistoryById)
 

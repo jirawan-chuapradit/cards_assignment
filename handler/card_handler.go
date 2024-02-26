@@ -17,6 +17,7 @@ type CardsHandler interface {
 	FindAll(ctx *gin.Context)
 	Create(ctx *gin.Context)
 	Update(ctx *gin.Context)
+	Store(ctx *gin.Context)
 }
 
 type cardsHandler struct {
@@ -190,4 +191,54 @@ func (h *cardsHandler) Update(ctx *gin.Context) {
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, webResponse)
 
+}
+
+func (h *cardsHandler) Store(ctx *gin.Context) {
+	cardId := ctx.Param("cardId")
+	objID, err := primitive.ObjectIDFromHex(cardId)
+	if err != nil { // TODO: handle
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "invalid request",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, webResponse)
+		return
+	}
+	if err := h.cardsService.Store(ctx, objID); err != nil {
+		log.Println(err)
+		if err == mongo.ErrNoDocuments {
+			log.Println(err)
+			webResponse := response.Response{
+				Code:   http.StatusBadRequest,
+				Status: "Failed",
+				Data:   "card not found",
+			}
+
+			ctx.Header("Content-Type", "application/json")
+			ctx.JSON(http.StatusBadRequest, webResponse)
+			return
+		}
+
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not find card because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
+	}
+
+	webResponse := response.Response{
+		Code:   http.StatusOK,
+		Status: "Ok",
+		Data:   "store card in an archive successfully",
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, webResponse)
 }
