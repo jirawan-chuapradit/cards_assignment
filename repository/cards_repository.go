@@ -11,6 +11,7 @@ import (
 
 type CardsRepository interface {
 	FindById(ctx context.Context, cardsId primitive.ObjectID) (cardsDetails models.CardsDetail, err error)
+	FindAll(ctx context.Context) ([]models.CardsDetail, error)
 }
 
 type cardsRepository struct {
@@ -31,4 +32,18 @@ func (r *cardsRepository) FindById(ctx context.Context, cardsId primitive.Object
 	}
 	log.Println(cardsDetails)
 	return
+}
+
+// find cards
+func (r *cardsRepository) FindAll(ctx context.Context) ([]models.CardsDetail, error) {
+	var cards []models.CardsDetail
+	cursor, err := r.CardsAssignmentDatabase.Collection("cards").Find(ctx, map[string]interface{}{})
+	if err != nil {
+		return cards, err
+	}
+
+	if err := cursor.All(ctx, &cards); err != nil {
+		return cards, err
+	}
+	return cards, nil
 }

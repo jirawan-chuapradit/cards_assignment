@@ -13,6 +13,7 @@ import (
 
 type CardsHandler interface {
 	FindById(ctx *gin.Context)
+	FindAll(ctx *gin.Context)
 }
 
 type cardsHandler struct {
@@ -63,6 +64,31 @@ func (h *cardsHandler) FindById(ctx *gin.Context) {
 		Code:   http.StatusOK,
 		Status: "Ok",
 		Data:   cardDetails,
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, webResponse)
+}
+
+func (h *cardsHandler) FindAll(ctx *gin.Context) {
+	cards, err := h.cardsService.FindAll(ctx)
+	if err != nil {
+		log.Println(err)
+
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not find cards because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
+	}
+
+	webResponse := response.Response{
+		Code:   http.StatusOK,
+		Status: "Ok",
+		Data:   cards,
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, webResponse)
