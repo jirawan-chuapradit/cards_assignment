@@ -16,6 +16,7 @@ type CardsService interface {
 	FindAll(ctx context.Context) ([]models.CardsDetail, error)
 	Create(ctx context.Context, cardReq request.CreateCardRequestBody) (models.CardsDetail, error)
 	Update(ctx context.Context, cardReq request.UpdateCardRequestBody) error
+	Store(ctx context.Context, cardsId primitive.ObjectID) error
 }
 
 type cardsService struct {
@@ -66,4 +67,9 @@ func (s *cardsService) Update(ctx context.Context, cardReq request.UpdateCardReq
 	now := time.Now()
 	cardReq.UpdatedAt = &now
 	return s.cardsRepository.Update(ctx, cardReq)
+}
+
+// store card in an archive
+func (s *cardsService) Store(ctx context.Context, cardsId primitive.ObjectID) error {
+	return s.cardsRepository.Store(ctx, cardsId)
 }
