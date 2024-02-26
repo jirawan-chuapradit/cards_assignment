@@ -103,13 +103,13 @@ func (h *cardsHandler) Create(ctx *gin.Context) {
 	if err != nil {
 		log.Println(err)
 		webResponse := response.Response{
-			Code:   http.StatusInternalServerError,
+			Code:   http.StatusBadRequest,
 			Status: "Failed",
 			Data:   "can not create cards because internal server error",
 		}
 
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusInternalServerError, webResponse)
+		ctx.JSON(http.StatusBadRequest, webResponse)
 	}
 
 	card, err := h.cardsService.Create(ctx, createCardRequest)
@@ -141,13 +141,13 @@ func (h *cardsHandler) Update(ctx *gin.Context) {
 	if err != nil {
 		log.Println(err)
 		webResponse := response.Response{
-			Code:   http.StatusInternalServerError,
+			Code:   http.StatusBadRequest,
 			Status: "Failed",
-			Data:   "can not create cards because internal server error",
+			Data:   "can not update cards because internal server error",
 		}
 
 		ctx.Header("Content-Type", "application/json")
-		ctx.JSON(http.StatusInternalServerError, webResponse)
+		ctx.JSON(http.StatusBadRequest, webResponse)
 	}
 
 	cardId := ctx.Param("cardId")
