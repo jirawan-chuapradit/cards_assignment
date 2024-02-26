@@ -15,6 +15,7 @@ type CardsService interface {
 	FindById(ctx context.Context, cardsId primitive.ObjectID) (models.CardsDetail, error)
 	FindAll(ctx context.Context) ([]models.CardsDetail, error)
 	Create(ctx context.Context, cardReq request.CreateCardRequestBody) (models.CardsDetail, error)
+	Update(ctx context.Context, cardReq request.UpdateCardRequestBody) error
 }
 
 type cardsService struct {
@@ -55,4 +56,14 @@ func (s *cardsService) Create(ctx context.Context, cardReq request.CreateCardReq
 	card.CreatedBy = "mock user"
 	// repository
 	return s.cardsRepository.Create(ctx, card)
+}
+
+// update card
+func (s *cardsService) Update(ctx context.Context, cardReq request.UpdateCardRequestBody) error {
+	// TODO: validate created  equal user session
+
+	// repository
+	now := time.Now()
+	cardReq.UpdatedAt = &now
+	return s.cardsRepository.Update(ctx, cardReq)
 }
