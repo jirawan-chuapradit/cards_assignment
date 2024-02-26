@@ -3,9 +3,11 @@ package repository
 import (
 	"context"
 	"log"
+	"time"
 
 	"github.com/jirawan-chuapradit/cards_assignment/models"
 	"github.com/jirawan-chuapradit/cards_assignment/models/request"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -15,6 +17,7 @@ type CardsRepository interface {
 	FindAll(ctx context.Context) ([]models.CardsDetail, error)
 	Create(ctx context.Context, card models.CardsDetail) (models.CardsDetail, error)
 	Update(ctx context.Context, cardReq request.UpdateCardRequestBody) error
+	Store(ctx context.Context, cardsId primitive.ObjectID) error
 }
 
 type cardsRepository struct {
@@ -29,7 +32,13 @@ func NewCardsRepository(conn *mongo.Client) CardsRepository {
 
 // find card by cards Id
 func (r *cardsRepository) FindById(ctx context.Context, cardsId primitive.ObjectID) (cardsDetails models.CardsDetail, err error) {
-	result := r.CardsAssignmentDatabase.Collection("cards").FindOne(ctx, map[string]interface{}{"_id": cardsId})
+	filter := map[string]interface{}{
+		"_id": cardsId,
+		"is_archive": bson.M{
+			"$ne": true,
+		},
+	}
+	result := r.CardsAssignmentDatabase.Collection("cards").FindOne(ctx, filter)
 	if err = result.Decode(&cardsDetails); err != nil {
 		return
 	}
@@ -40,7 +49,12 @@ func (r *cardsRepository) FindById(ctx context.Context, cardsId primitive.Object
 // find cards
 func (r *cardsRepository) FindAll(ctx context.Context) ([]models.CardsDetail, error) {
 	var cards []models.CardsDetail
-	cursor, err := r.CardsAssignmentDatabase.Collection("cards").Find(ctx, map[string]interface{}{})
+	filter := map[string]interface{}{
+		"is_archive": bson.M{
+			"$ne": true,
+		},
+	}
+	cursor, err := r.CardsAssignmentDatabase.Collection("cards").Find(ctx, filter)
 	if err != nil {
 		return cards, err
 	}
@@ -69,6 +83,21 @@ func (r *cardsRepository) Update(ctx context.Context, cardReq request.UpdateCard
 	}
 	update := map[string]interface{}{
 		"$set": cardReq,
+	}
+
+	return r.CardsAssignmentDatabase.Collection("cards").FindOneAndUpdate(ctx, filter, update).Err()
+}
+
+// store card in an archive
+func (r *cardsRepository) Store(ctx context.Context, cardsId primitive.ObjectID) error {
+	filter := map[string]interface{}{
+		"_id": cardsId,
+	}
+	update := map[string]interface{}{
+		"$set": map[string]interface{}{
+			"is_archive": true,
+			"updated_at": time.Now(),
+		},
 	}
 
 	return r.CardsAssignmentDatabase.Collection("cards").FindOneAndUpdate(ctx, filter, update).Err()
