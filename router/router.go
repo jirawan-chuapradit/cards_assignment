@@ -40,5 +40,10 @@ func Setup(conn *mongo.Client) *gin.Engine {
 	cardsHistoryRouter := cardRouter.Group("/history")
 	cardsHistoryRouter.GET("/:cardId", cardsHistoryHandler.FindHistoryById)
 
+	commentRouter := baseRouter.Group("/comments")
+	commentRouter.POST("", nil)              // TODO: create comment
+	commentRouter.PUT("/:commentId", nil)    // TODO: edit comment
+	commentRouter.DELETE("/:commentId", nil) // TODO: delete comment
+
 	return r
 }
