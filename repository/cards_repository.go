@@ -18,6 +18,8 @@ type CardsRepository interface {
 	Create(ctx context.Context, card models.CardsDetail) (models.CardsDetail, error)
 	Update(ctx context.Context, cardReq request.UpdateCardRequestBody) error
 	Store(ctx context.Context, cardsId primitive.ObjectID) error
+
+	DeleteComment(ctx context.Context, commentId primitive.ObjectID) error
 }
 
 type cardsRepository struct {
@@ -72,7 +74,7 @@ func (r *cardsRepository) Create(ctx context.Context, card models.CardsDetail) (
 		return card, err
 	}
 
-	card.ID = result.InsertedID.(primitive.ObjectID)
+	card.ID = result.InsertedID.(*primitive.ObjectID)
 	return card, nil
 }
 
@@ -101,4 +103,12 @@ func (r *cardsRepository) Store(ctx context.Context, cardsId primitive.ObjectID)
 	}
 
 	return r.CardsAssignmentDatabase.Collection("cards").FindOneAndUpdate(ctx, filter, update).Err()
+}
+
+// delete comment
+func (r *cardsRepository) DeleteComment(ctx context.Context, commentId primitive.ObjectID) error {
+	filter := map[string]interface{}{
+		"comments._id": commentId,
+	}
+	return r.CardsAssignmentDatabase.Collection("cards").FindOneAndDelete(ctx, filter).Err()
 }

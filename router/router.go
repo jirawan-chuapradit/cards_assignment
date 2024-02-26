@@ -23,10 +23,12 @@ func Setup(conn *mongo.Client) *gin.Engine {
 	// service
 	cardsServ := service.NewCardsService(cardsRepository)
 	cardsHistoryServ := service.NewCardsHistoryService(cardsHistoryRepository)
+	commentServ := service.NewCommentService(cardsRepository)
 
 	// handler
 	cardHandler := handler.NewCardsHandler(cardsServ)
 	cardsHistoryHandler := handler.NewCardsHistoryHandler(cardsHistoryServ)
+	commentHandler := handler.NewCommentHandler(commentServ)
 
 	cardRouter := baseRouter.Group("/cards")
 	cardRouter.GET("", cardHandler.FindAll)
@@ -39,6 +41,11 @@ func Setup(conn *mongo.Client) *gin.Engine {
 
 	cardsHistoryRouter := cardRouter.Group("/history")
 	cardsHistoryRouter.GET("/:cardId", cardsHistoryHandler.FindHistoryById)
+
+	commentRouter := baseRouter.Group("/comments")
+	commentRouter.POST("", commentHandler.Create)              // TODO: create comment
+	commentRouter.PUT("/:commentId", commentHandler.Update)    // TODO: edit comment
+	commentRouter.DELETE("/:commentId", commentHandler.Delete) // TODO: delete comment
 
 	return r
 }
