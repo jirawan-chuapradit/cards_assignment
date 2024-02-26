@@ -15,16 +15,24 @@ func Setup(conn *mongo.Client) *gin.Engine {
 	r.GET("/ping", handler.HealthCheckHandler)
 
 	baseRouter := r.Group("/api")
-	cardsRouter := baseRouter.Group("/cards")
 
 	// repository
 	cardsRepository := repository.NewCardsRepository(conn)
+	cardsHistoryRepository := repository.NewCardsHistoryRepository(conn)
 
 	// service
 	cardsServ := service.NewCardsService(cardsRepository)
+	cardsHistoryServ := service.NewCardsHistoryService(cardsHistoryRepository)
 
 	// handler
 	cardHandler := handler.NewCardsHandler(cardsServ)
-	cardsRouter.GET("/:cardId", cardHandler.FindById)
+	cardsHistoryHandler := handler.NewCardsHistoryHandler(cardsHistoryServ)
+
+	cardRouter := baseRouter.Group("/cards")
+	cardRouter.GET("/:cardId", cardHandler.FindById)
+
+	cardsHistoryRouter := cardRouter.Group("/history")
+	cardsHistoryRouter.GET("/:cardId", cardsHistoryHandler.FindHistoryById)
+
 	return r
 }
