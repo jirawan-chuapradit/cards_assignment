@@ -71,5 +71,7 @@ func (s *cardsService) Update(ctx context.Context, cardReq request.UpdateCardReq
 
 // store card in an archive
 func (s *cardsService) Store(ctx context.Context, cardsId primitive.ObjectID) error {
+	// TODO: validate archive  equal user session
+
 	return s.cardsRepository.Store(ctx, cardsId)
 }
