@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"time"
 
+	"github.com/jirawan-chuapradit/cards_assignment/config"
 	"github.com/jirawan-chuapradit/cards_assignment/models"
 	"github.com/jirawan-chuapradit/cards_assignment/models/request"
 	"github.com/jirawan-chuapradit/cards_assignment/repository"
@@ -44,7 +45,7 @@ func (s *cardsService) FindAll(ctx context.Context) ([]models.CardsDetail, error
 // create card
 func (s *cardsService) Create(ctx context.Context, cardReq request.CreateCardRequestBody) (models.CardsDetail, error) {
 	var card models.CardsDetail
-	now := time.Now()
+	now := time.Now().In(config.Location)
 	crb, err := json.Marshal(cardReq)
 	if err != nil {
 		return card, err
@@ -64,7 +65,7 @@ func (s *cardsService) Update(ctx context.Context, cardReq request.UpdateCardReq
 	// TODO: validate created  equal user session
 
 	// repository
-	now := time.Now()
+	now := time.Now().In(config.Location)
 	cardReq.UpdatedAt = &now
 	return s.cardsRepository.Update(ctx, cardReq)
 }
