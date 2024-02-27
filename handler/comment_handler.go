@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jirawan-chuapradit/cards_assignment/models/request"
 	"github.com/jirawan-chuapradit/cards_assignment/models/response"
 	"github.com/jirawan-chuapradit/cards_assignment/service"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -31,7 +32,67 @@ func (h *commentHandler) Create(ctx *gin.Context) {
 }
 
 func (h *commentHandler) Update(ctx *gin.Context) {
-	return
+	commentId := ctx.Param("commentId")
+	objID, err := primitive.ObjectIDFromHex(commentId)
+	if err != nil { // TODO: handle
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "invalid request",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, webResponse)
+		return
+	}
+	_ = objID
+
+	updateCommentRequest := request.UpdateCommentBody{}
+	if err := ctx.ShouldBindJSON(&updateCommentRequest); err != nil {
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "invalid request",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, webResponse)
+	}
+
+	if updateCommentRequest.ID != objID {
+		log.Printf("expected comment %s, got %s", updateCommentRequest.ID, objID)
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "can not update comment invalid comment id",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, webResponse)
+	}
+
+	if err := h.commentServ.Update(ctx, updateCommentRequest); err != nil {
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not update comment because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
+	}
+
+	webResponse := response.Response{
+		Code:   http.StatusOK,
+		Status: "Ok",
+		Data:   "update successfully",
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusOK, webResponse)
 }
 
 func (h *commentHandler) Delete(ctx *gin.Context) {
