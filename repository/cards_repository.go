@@ -22,6 +22,7 @@ type CardsRepository interface {
 
 	DeleteComment(ctx context.Context, commentId primitive.ObjectID) error
 	UpdateComment(ctx context.Context, commentReq request.UpdateCommentBody) error
+	CreateComment(ctx context.Context, cardId primitive.ObjectID, comment models.Comment) error
 }
 
 type cardsRepository struct {
@@ -133,5 +134,22 @@ func (r *cardsRepository) UpdateComment(ctx context.Context, commentReq request.
 		},
 	}
 	_, err := r.CardsAssignmentDatabase.Collection("cards").UpdateOne(ctx, filter, update)
+	return err
+}
+
+// create comment
+func (r *cardsRepository) CreateComment(ctx context.Context, cardId primitive.ObjectID, comment models.Comment) error {
+	filter := bson.M{
+		"_id": cardId,
+	}
+	commentId := primitive.NewObjectID()
+	comment.ID = &commentId
+	update := bson.M{
+		"$push": bson.M{
+			"comments": comment,
+		},
+	}
+	_, err := r.CardsAssignmentDatabase.Collection("cards").UpdateOne(ctx, filter, update)
+
 	return err
 }

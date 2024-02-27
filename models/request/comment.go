@@ -11,3 +11,8 @@ type UpdateCommentBody struct {
 	Description *string            `json:"description" bson:"description"`
 	UpdatedAt   *time.Time         `json:"updated_at,omitempty" bson:"updated_at,omitempty"`
 }
+
+type CreateCommentBody struct {
+	CardID      primitive.ObjectID `json:"card_id,omitempty"`
+	Description *string            `json:"description"`
+}

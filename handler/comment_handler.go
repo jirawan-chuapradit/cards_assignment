@@ -28,7 +28,38 @@ func NewCommentHandler(commentServ service.CommentService) CommentHandler {
 }
 
 func (h *commentHandler) Create(ctx *gin.Context) {
-	return
+	createCommentRequest := request.CreateCommentBody{}
+	if err := ctx.ShouldBindJSON(&createCommentRequest); err != nil {
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "invalid request",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, webResponse)
+	}
+	if err := h.commentServ.Create(ctx, createCommentRequest); err != nil {
+		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not update comment because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
+	}
+
+	webResponse := response.Response{
+		Code:   http.StatusCreated,
+		Status: "Ok",
+		Data:   "created comment successfully",
+	}
+	ctx.Header("Content-Type", "application/json")
+	ctx.JSON(http.StatusCreated, webResponse)
 }
 
 func (h *commentHandler) Update(ctx *gin.Context) {
