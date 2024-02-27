@@ -5,6 +5,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/jirawan-chuapradit/cards_assignment/config"
 	"github.com/jirawan-chuapradit/cards_assignment/models"
 	"github.com/jirawan-chuapradit/cards_assignment/models/request"
 	"go.mongodb.org/mongo-driver/bson"
@@ -20,6 +21,7 @@ type CardsRepository interface {
 	Store(ctx context.Context, cardsId primitive.ObjectID) error
 
 	DeleteComment(ctx context.Context, commentId primitive.ObjectID) error
+	UpdateComment(ctx context.Context, commentReq request.UpdateCommentBody) error
 }
 
 type cardsRepository struct {
@@ -84,7 +86,12 @@ func (r *cardsRepository) Update(ctx context.Context, cardReq request.UpdateCard
 		"_id": cardReq.ID,
 	}
 	update := map[string]interface{}{
-		"$set": cardReq,
+		"$set": bson.M{
+			"title":       cardReq.Title,
+			"description": cardReq.Description,
+			"status":      cardReq.Status,
+			"updated_at":  cardReq.UpdatedAt,
+		},
 	}
 
 	return r.CardsAssignmentDatabase.Collection("cards").FindOneAndUpdate(ctx, filter, update).Err()
@@ -98,7 +105,7 @@ func (r *cardsRepository) Store(ctx context.Context, cardsId primitive.ObjectID)
 	update := map[string]interface{}{
 		"$set": map[string]interface{}{
 			"is_archive": true,
-			"updated_at": time.Now(),
+			"updated_at": time.Now().In(config.Location),
 		},
 	}
 
@@ -111,4 +118,20 @@ func (r *cardsRepository) DeleteComment(ctx context.Context, commentId primitive
 		"comments._id": commentId,
 	}
 	return r.CardsAssignmentDatabase.Collection("cards").FindOneAndDelete(ctx, filter).Err()
+}
+
+// update comment
+func (r *cardsRepository) UpdateComment(ctx context.Context, commentReq request.UpdateCommentBody) error {
+	filter := map[string]interface{}{
+		"comments._id": commentReq.ID,
+	}
+
+	update := map[string]interface{}{
+		"$set": bson.M{
+			"comments.$.description": commentReq.Description,
+			"comments.$.updated_at":  commentReq.UpdatedAt,
+		},
+	}
+	_, err := r.CardsAssignmentDatabase.Collection("cards").UpdateOne(ctx, filter, update)
+	return err
 }
