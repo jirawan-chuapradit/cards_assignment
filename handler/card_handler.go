@@ -199,7 +199,7 @@ func (h *cardsHandler) Update(ctx *gin.Context) {
 		webResponse := response.Response{
 			Code:   http.StatusInternalServerError,
 			Status: "Failed",
-			Data:   "can not update comment because internal server error",
+			Data:   "internal server error",
 		}
 
 		ctx.Header("Content-Type", "application/json")
@@ -216,7 +216,7 @@ func (h *cardsHandler) Update(ctx *gin.Context) {
 		webResponse := response.Response{
 			Code:   http.StatusInternalServerError,
 			Status: "Failed",
-			Data:   "can not update card because internal server error",
+			Data:   "internal server error",
 		}
 
 		ctx.Header("Content-Type", "application/json")
@@ -265,7 +265,7 @@ func (h *cardsHandler) Store(ctx *gin.Context) {
 		webResponse := response.Response{
 			Code:   http.StatusInternalServerError,
 			Status: "Failed",
-			Data:   "can not find card because internal server error",
+			Data:   "internal server error",
 		}
 
 		ctx.Header("Content-Type", "application/json")

@@ -47,7 +47,7 @@ func (h *authHandler) SignUp(c *gin.Context) {
 		webResponse := response.Response{
 			Code:   http.StatusInternalServerError,
 			Status: "Failed",
-			Data:   "can not find history because internal server error",
+			Data:   "internal server error",
 		}
 
 		c.Header("Content-Type", "application/json")

@@ -50,7 +50,7 @@ func (h *commentHandler) Create(ctx *gin.Context) {
 		webResponse := response.Response{
 			Code:   http.StatusInternalServerError,
 			Status: "Failed",
-			Data:   "can not update comment because internal server error",
+			Data:   "internal server error",
 		}
 
 		ctx.Header("Content-Type", "application/json")
@@ -166,7 +166,7 @@ func (h *commentHandler) Delete(ctx *gin.Context) {
 		webResponse := response.Response{
 			Code:   http.StatusInternalServerError,
 			Status: "Failed",
-			Data:   "can not update comment because internal server error",
+			Data:   "internal server error",
 		}
 
 		ctx.Header("Content-Type", "application/json")
@@ -178,7 +178,7 @@ func (h *commentHandler) Delete(ctx *gin.Context) {
 		webResponse := response.Response{
 			Code:   http.StatusInternalServerError,
 			Status: "Failed",
-			Data:   "can not delete comment because internal server error",
+			Data:   "internal server error",
 		}
 
 		ctx.Header("Content-Type", "application/json")
