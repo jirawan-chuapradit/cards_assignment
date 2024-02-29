@@ -3,4 +3,15 @@ p, username, resource, read
 p, admin, resource, read
 p, admin, resource, write
 g, alice, admin
-g, bob, user
+g, bob, users
+
+p, users, cards, read
+p, users, cards, write
+p, users, comments, write
+p, users, comments, delete
+p, admin, cards, read
+p, admin, cards, write
+p, admin, comments, write
+p, admin, comments, delete
+g, alice3_jones, admin
+g, bob4_jones, users

@@ -91,7 +91,6 @@ func Authorize(obj string, act string, adapter persist.Adapter) gin.HandlerFunc 
 			return
 		}
 		if !ok {
-			fmt.Println("forbidden !!")
 			c.AbortWithStatusJSON(403, "forbidden")
 			return
 		}

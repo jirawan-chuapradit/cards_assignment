@@ -18,11 +18,19 @@ func Setup(server models.Server) *gin.Engine {
 
 	// repository
 	userRepo := repository.NewUsersRepository(conn)
+	cardsRepository := repository.NewCardsRepository(conn)
+	cardsHistoryRepository := repository.NewCardsHistoryRepository(conn)
 	// service
 	authServ := auth.NewAuthService(server.RedisCli)
 	userServ := service.NewUsersService(userRepo)
+	cardsServ := service.NewCardsService(cardsRepository)
+	cardsHistoryServ := service.NewCardsHistoryService(cardsHistoryRepository)
+	commentServ := service.NewCommentService(cardsRepository)
 	// handler
 	authHandler := handler.NewAuthHandler(authServ, userServ)
+	cardHandler := handler.NewCardsHandler(cardsServ)
+	cardsHistoryHandler := handler.NewCardsHistoryHandler(cardsHistoryServ)
+	commentHandler := handler.NewCommentHandler(commentServ)
 
 	r.POST("/login", authHandler.Login)
 	r.POST("/signup", authHandler.SignUp)
@@ -35,38 +43,20 @@ func Setup(server models.Server) *gin.Engine {
 	{
 		authorized.GET("/test", middleware.Authorize("resource", "read", fileadapter), handler.TestAPI)
 		authorized.POST("/logout", authHandler.Logout)
+
+		// cards
+		authorized.GET("/api/cards", middleware.Authorize("cards", "read", fileadapter), cardHandler.FindAll)
+		authorized.GET("/api/cards/:cardId", middleware.Authorize("cards", "read", fileadapter), cardHandler.FindById)
+		authorized.POST("/api/cards", middleware.Authorize("cards", "write", fileadapter), cardHandler.Create)
+		authorized.PUT("/api/cards/:cardId", middleware.Authorize("cards", "write", fileadapter), cardHandler.Update)
+		authorized.PUT("/api/cards/archive/:cardId", middleware.Authorize("cards", "write", fileadapter), cardHandler.Store)
+		authorized.GET("/api/cards/history/:cardId", middleware.Authorize("cards", "read", fileadapter), cardsHistoryHandler.FindHistoryById)
+
+		// comments
+		authorized.PUT("/api/comments", middleware.Authorize("comments", "write", fileadapter), commentHandler.Create)
+		authorized.PUT("/api/comments/:commentId", middleware.Authorize("comments", "write", fileadapter), commentHandler.Update)
+		authorized.DELETE("/api/comments/:commentId", middleware.Authorize("comments", "delete", fileadapter), commentHandler.Delete)
 	}
-	baseRouter := r.Group("/api")
-	// repository
-	cardsRepository := repository.NewCardsRepository(conn)
-	cardsHistoryRepository := repository.NewCardsHistoryRepository(conn)
-
-	// service
-	cardsServ := service.NewCardsService(cardsRepository)
-	cardsHistoryServ := service.NewCardsHistoryService(cardsHistoryRepository)
-	commentServ := service.NewCommentService(cardsRepository)
-
-	// handler
-	cardHandler := handler.NewCardsHandler(cardsServ)
-	cardsHistoryHandler := handler.NewCardsHistoryHandler(cardsHistoryServ)
-	commentHandler := handler.NewCommentHandler(commentServ)
-
-	cardRouter := baseRouter.Group("/cards")
-	cardRouter.GET("", cardHandler.FindAll)
-	cardRouter.GET("/:cardId", cardHandler.FindById)
-	cardRouter.POST("", cardHandler.Create)
-	cardRouter.PUT("/:cardId", cardHandler.Update)
-
-	archiveRouter := cardRouter.Group("/archive")
-	archiveRouter.PUT("/:cardId", cardHandler.Store)
-
-	cardsHistoryRouter := cardRouter.Group("/history")
-	cardsHistoryRouter.GET("/:cardId", cardsHistoryHandler.FindHistoryById)
-
-	commentRouter := baseRouter.Group("/comments")
-	commentRouter.PUT("", commentHandler.Create)
-	commentRouter.PUT("/:commentId", commentHandler.Update)
-	commentRouter.DELETE("/:commentId", commentHandler.Delete)
 
 	return r
 }
