@@ -40,5 +40,6 @@ func main() {
 	}
 
 	r := router.Setup(s)
+
 	http.ListenAndServe(":8080", ratelimit.Limit(r))
 }
