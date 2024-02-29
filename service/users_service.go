@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"time"
 
 	"github.com/jirawan-chuapradit/cards_assignment/config"
@@ -14,6 +16,7 @@ import (
 
 type UsersService interface {
 	CreateUser(ctx context.Context, userReq request.SignUp) error
+	ValidateUser(ctx context.Context, userReq models.Login) (models.User, error)
 }
 
 type usersService struct {
@@ -45,6 +48,27 @@ func (s *usersService) CreateUser(ctx context.Context, userReq request.SignUp) e
 	user.CreatedAt = now
 	user.UpdatedAt = now
 	return s.usersRepository.Create(ctx, user)
+}
+
+func (s *usersService) ValidateUser(ctx context.Context, userReq models.Login) (models.User, error) {
+	user, err := s.usersRepository.FindByEmail(ctx, userReq.Email)
+	if err != nil {
+		return user, err
+	}
+	if ok := comparePasswords(user.Password, userReq.Password); !ok {
+		return user, errors.New("invalid user and password")
+	}
+	return user, nil
+}
+
+func comparePasswords(hashedPwd string, plainPwd string) bool {
+	byteHash := []byte(hashedPwd)
+	err := bcrypt.CompareHashAndPassword(byteHash, []byte(plainPwd))
+	if err != nil {
+		fmt.Println(err)
+		return false
+	}
+	return true
 }
 
 func hashAndSalt(pwd []byte) (string, error) {

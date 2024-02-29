@@ -33,7 +33,14 @@ func NewAuthHandler(authServ auth.AuthInterface, userServ service.UsersService) 
 func (h *authHandler) SignUp(c *gin.Context) {
 	var u request.SignUp
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "invalid request",
+		}
+
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusBadRequest, webResponse)
 		return
 	}
 
@@ -60,25 +67,45 @@ func (h *authHandler) SignUp(c *gin.Context) {
 func (h *authHandler) Login(c *gin.Context) {
 	var u models.Login
 	if err := c.ShouldBindJSON(&u); err != nil {
-		c.JSON(http.StatusUnprocessableEntity, "Invalid json provided")
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "invalid request",
+		}
+
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusBadRequest, webResponse)
 		return
 	}
-	//find user with username
-	user, _ := models.UserRepo.FindByID(2)
 
-	//compare the user from the request, with the one we defined:
-	if user.UserName != u.UserName || user.Password != u.Password {
-		c.JSON(http.StatusUnauthorized, "Please provide valid login details")
-		return
-	}
-
-	ts, err := h.tokenManager.CreateToken(user.ID, user.UserName)
+	//validate user name
+	user, err := h.userService.ValidateUser(c, u)
 	if err != nil {
-		c.JSON(http.StatusUnprocessableEntity, err.Error())
+		webResponse := response.Response{
+			Code:   http.StatusUnauthorized,
+			Status: "Failed",
+			Data:   "Please provide valid login details",
+		}
+
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusUnauthorized, webResponse)
 		return
 	}
 
-	saveErr := h.auth.CreateAuth(user.ID, ts)
+	ts, err := h.tokenManager.CreateToken(user.ID.Hex(), user.UserName)
+	if err != nil {
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "internal server error",
+		}
+
+		c.Header("Content-Type", "application/json")
+		c.JSON(http.StatusUnprocessableEntity, webResponse)
+		return
+	}
+
+	saveErr := h.auth.CreateAuth(user.ID.Hex(), ts)
 	if saveErr != nil {
 		c.JSON(http.StatusUnprocessableEntity, saveErr.Error())
 	}

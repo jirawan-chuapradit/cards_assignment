@@ -7,9 +7,8 @@ import (
 )
 
 type Login struct {
-	ID       string `json:"id"`
-	UserName string `json:"username"`
-	Password string `json:"password"`
+	Email    string `json:"email" binding:"required"`
+	Password string `json:"password" binding:"required"`
 }
 type User struct {
 	ID        primitive.ObjectID `json:"id" bson:"_id,omitempty"`
