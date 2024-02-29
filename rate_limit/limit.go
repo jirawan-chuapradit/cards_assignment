@@ -62,7 +62,7 @@ func Limit(next http.Handler) http.Handler {
 		}
 
 		limiter := getVisitor(ip)
-		if limiter.Allow() {
+		if !limiter.Allow() {
 			http.Error(w, http.StatusText(429), http.StatusTooManyRequests)
 			return
 		}
