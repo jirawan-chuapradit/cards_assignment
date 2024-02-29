@@ -17,7 +17,10 @@ import (
 
 func main() {
 	fmt.Println("Hello")
-	conn := db.Setup()
+	conn, err := db.Setup()
+	if err != nil {
+		log.Panic(err)
+	}
 	config.SetUp()
 
 	defer func() {
