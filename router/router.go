@@ -2,19 +2,35 @@ package router
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/jirawan-chuapradit/cards_assignment/auth"
 	"github.com/jirawan-chuapradit/cards_assignment/handler"
+	"github.com/jirawan-chuapradit/cards_assignment/middleware"
+	"github.com/jirawan-chuapradit/cards_assignment/models"
 	"github.com/jirawan-chuapradit/cards_assignment/repository"
 	"github.com/jirawan-chuapradit/cards_assignment/service"
-	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func Setup(conn *mongo.Client) *gin.Engine {
-
+func Setup(server models.Server) *gin.Engine {
+	fileadapter := server.FileAdapter
+	conn := server.DB
 	r := gin.Default()
-
 	r.GET("/ping", handler.HealthCheckHandler)
 
+	// service
+	authServ := auth.NewAuthService(server.RedisCli)
+	// handler
+	authHandler := handler.NewAuthHandler(authServ)
+
+	r.POST("/login", authHandler.Login)
+
 	baseRouter := r.Group("/api")
+	baseRouter.Use(gin.Logger())
+	baseRouter.Use(gin.Recovery())
+
+	baseRouter.Use(middleware.TokenAuthMiddleware)
+	{
+		baseRouter.GET("/test", middleware.Authorize("resource", "read", fileadapter), handler.TestAPI)
+	}
 
 	// repository
 	cardsRepository := repository.NewCardsRepository(conn)

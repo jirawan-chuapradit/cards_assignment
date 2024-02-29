@@ -11,6 +11,22 @@ services:
     networks:
       - mongo_net
 
+  redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    networks:
+      - mongo_net
+
+  redisinsight:
+    image: redislabs/redisinsight
+    container_name: redisinsight
+    ports:
+      - "8001:8001"
+    networks:
+      - mongo_net
+
 networks:
   mongo_net:
 

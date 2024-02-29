@@ -3,11 +3,16 @@ module github.com/jirawan-chuapradit/cards_assignment
 go 1.17
 
 require (
+	github.com/casbin/casbin v1.9.1
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/gin-gonic/gin v1.7.4
+	github.com/go-redis/redis/v7 v7.4.1
+	github.com/twinj/uuid v1.0.0
 	go.mongodb.org/mongo-driver v1.14.0
 )
 
 require (
+	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/gabriel-vasile/mimetype v1.4.2 // indirect
 	github.com/gin-contrib/sse v0.1.0 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect

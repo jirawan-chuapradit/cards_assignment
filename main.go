@@ -5,8 +5,11 @@ import (
 	"fmt"
 	"log"
 
+	fileadapter "github.com/casbin/casbin/persist/file-adapter"
 	"github.com/jirawan-chuapradit/cards_assignment/config"
 	"github.com/jirawan-chuapradit/cards_assignment/db"
+	"github.com/jirawan-chuapradit/cards_assignment/memory/redis"
+	"github.com/jirawan-chuapradit/cards_assignment/models"
 	"github.com/jirawan-chuapradit/cards_assignment/router"
 )
 
@@ -16,7 +19,6 @@ func main() {
 	config.SetUp()
 
 	defer func() {
-
 		// Disconnect from MongoDB
 		err := conn.Disconnect(context.Background())
 		if err != nil {
@@ -24,7 +26,15 @@ func main() {
 		}
 		fmt.Println("Disconnected from MongoDB.")
 	}()
-	r := router.Setup(conn)
+
+	redisCli := redis.Setup()
+	s := models.Server{
+		DB:          conn,
+		RedisCli:    redisCli,
+		FileAdapter: fileadapter.NewAdapter("config/basic_policy.csv"),
+	}
+
+	r := router.Setup(s)
 
 	r.Run()
 }
