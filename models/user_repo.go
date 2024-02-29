@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-var us = []User{
+var us = []Login{
 	{
 		ID:       "2",
 		UserName: "users",
@@ -22,35 +22,35 @@ var UserRepo = UserRepository{
 }
 
 type UserRepository struct {
-	Users []User
+	Users []Login
 }
 
-func (r *UserRepository) FindAll() ([]User, error) {
+func (r *UserRepository) FindAll() ([]Login, error) {
 	return r.Users, nil
 }
 
-func (r *UserRepository) FindByID(id int) (User, error) {
+func (r *UserRepository) FindByID(id int) (Login, error) {
 
 	for _, v := range r.Users {
 		uid, err := strconv.Atoi(v.ID)
 		if err != nil {
-			return User{}, err
+			return Login{}, err
 		}
 		if uid == int(id) {
 			return v, nil
 		}
 	}
 
-	return User{}, errors.New("Not found")
+	return Login{}, errors.New("Not found")
 }
 
-func (r *UserRepository) Save(user User) (User, error) {
+func (r *UserRepository) Save(user Login) (Login, error) {
 	r.Users = append(r.Users, user)
 
 	return user, nil
 }
 
-func (r *UserRepository) Delete(user User) {
+func (r *UserRepository) Delete(user Login) {
 	id := -1
 	for i, v := range r.Users {
 		if v.ID == user.ID {
@@ -65,7 +65,7 @@ func (r *UserRepository) Delete(user User) {
 	}
 
 	r.Users[id] = r.Users[len(r.Users)-1] // Copy last element to index i.
-	r.Users[len(r.Users)-1] = User{}      // Erase last element (write zero value).
+	r.Users[len(r.Users)-1] = Login{}     // Erase last element (write zero value).
 	r.Users = r.Users[:len(r.Users)-1]    // Truncate slice.
 
 	return

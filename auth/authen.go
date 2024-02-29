@@ -20,7 +20,7 @@ type AuthService struct {
 	client *redis.Client
 }
 
-func NewAuthService(client *redis.Client) *AuthService {
+func NewAuthService(client *redis.Client) AuthInterface {
 	return &AuthService{client: client}
 }
 

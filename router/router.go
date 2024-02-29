@@ -16,12 +16,16 @@ func Setup(server models.Server) *gin.Engine {
 	r := gin.Default()
 	r.GET("/ping", handler.HealthCheckHandler)
 
+	// repository
+	userRepo := repository.NewUsersRepository(conn)
 	// service
 	authServ := auth.NewAuthService(server.RedisCli)
+	userServ := service.NewUsersService(userRepo)
 	// handler
-	authHandler := handler.NewAuthHandler(authServ)
+	authHandler := handler.NewAuthHandler(authServ, userServ)
 
 	r.POST("/login", authHandler.Login)
+	r.POST("/signup", authHandler.SignUp)
 
 	authorized := r.Group("/")
 
