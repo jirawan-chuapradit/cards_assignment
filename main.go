@@ -4,12 +4,14 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 
 	fileadapter "github.com/casbin/casbin/persist/file-adapter"
 	"github.com/jirawan-chuapradit/cards_assignment/config"
 	"github.com/jirawan-chuapradit/cards_assignment/db"
 	"github.com/jirawan-chuapradit/cards_assignment/memory/redis"
 	"github.com/jirawan-chuapradit/cards_assignment/models"
+	ratelimit "github.com/jirawan-chuapradit/cards_assignment/rate_limit"
 	"github.com/jirawan-chuapradit/cards_assignment/router"
 )
 
@@ -35,6 +37,5 @@ func main() {
 	}
 
 	r := router.Setup(s)
-
-	r.Run()
+	http.ListenAndServe(":8080", ratelimit.Limit(r))
 }
