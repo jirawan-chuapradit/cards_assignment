@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"log"
 	"time"
 
@@ -20,7 +21,7 @@ type CardsRepository interface {
 	Update(ctx context.Context, cardReq request.UpdateCardRequestBody) error
 	Store(ctx context.Context, cardsId primitive.ObjectID) error
 
-	DeleteComment(ctx context.Context, commentId primitive.ObjectID) error
+	DeleteComment(ctx context.Context, commentId primitive.ObjectID, deleteBy string) error
 	UpdateComment(ctx context.Context, commentReq request.UpdateCommentBody) error
 	CreateComment(ctx context.Context, cardId primitive.ObjectID, comment models.Comment) error
 }
@@ -114,17 +115,20 @@ func (r *cardsRepository) Store(ctx context.Context, cardsId primitive.ObjectID)
 }
 
 // delete comment
-func (r *cardsRepository) DeleteComment(ctx context.Context, commentId primitive.ObjectID) error {
+func (r *cardsRepository) DeleteComment(ctx context.Context, commentId primitive.ObjectID, deleteBy string) error {
 	filter := map[string]interface{}{
-		"comments._id": commentId,
+		"comments._id":        commentId,
+		"comments.created_by": deleteBy,
 	}
+
 	return r.CardsAssignmentDatabase.Collection("cards").FindOneAndDelete(ctx, filter).Err()
 }
 
 // update comment
 func (r *cardsRepository) UpdateComment(ctx context.Context, commentReq request.UpdateCommentBody) error {
 	filter := map[string]interface{}{
-		"comments._id": commentReq.ID,
+		"comments._id":        commentReq.ID,
+		"comments.created_by": commentReq.UpdatedBy,
 	}
 
 	update := map[string]interface{}{
@@ -133,7 +137,10 @@ func (r *cardsRepository) UpdateComment(ctx context.Context, commentReq request.
 			"comments.$.updated_at":  commentReq.UpdatedAt,
 		},
 	}
-	_, err := r.CardsAssignmentDatabase.Collection("cards").UpdateOne(ctx, filter, update)
+	result, err := r.CardsAssignmentDatabase.Collection("cards").UpdateOne(ctx, filter, update)
+	if result.MatchedCount == 0 {
+		return errors.New("cannot modify comment")
+	}
 	return err
 }
 

@@ -38,6 +38,7 @@ func (m *authMiddleware) TokenAuthMiddleware(c *gin.Context) {
 
 		c.Header("Content-Type", "application/json")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, webResponse)
+		return
 	}
 
 	metadata, err := m.tokenManager.ExtractTokenMetadata(c.Request)
@@ -50,6 +51,7 @@ func (m *authMiddleware) TokenAuthMiddleware(c *gin.Context) {
 
 		c.Header("Content-Type", "application/json")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, webResponse)
+		return
 	}
 	if _, err := m.authServ.FetchAuth(metadata.TokenUuid); err != nil {
 		webResponse := response.Response{
@@ -60,8 +62,8 @@ func (m *authMiddleware) TokenAuthMiddleware(c *gin.Context) {
 
 		c.Header("Content-Type", "application/json")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, webResponse)
+		return
 	}
-	fmt.Println("token valid")
 
 	c.Next()
 }

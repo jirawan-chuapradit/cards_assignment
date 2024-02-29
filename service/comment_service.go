@@ -14,7 +14,7 @@ import (
 type CommentService interface {
 	Create(ctx context.Context, commentReq request.CreateCommentBody) error
 	Update(ctx context.Context, commentReq request.UpdateCommentBody) error
-	Delete(ctx context.Context, commentID primitive.ObjectID) error
+	Delete(ctx context.Context, commentID primitive.ObjectID, deleteBy string) error
 }
 
 type commentService struct {
@@ -42,12 +42,10 @@ func (s *commentService) Create(ctx context.Context, commentReq request.CreateCo
 
 // update comment
 func (s *commentService) Update(ctx context.Context, commentReq request.UpdateCommentBody) error {
-	now := time.Now().In(config.Location)
-	commentReq.UpdatedAt = &now
 	return s.cardsRepository.UpdateComment(ctx, commentReq)
 }
 
 // delete comment
-func (s *commentService) Delete(ctx context.Context, commentId primitive.ObjectID) error {
-	return s.cardsRepository.DeleteComment(ctx, commentId)
+func (s *commentService) Delete(ctx context.Context, commentId primitive.ObjectID, deleteBy string) error {
+	return s.cardsRepository.DeleteComment(ctx, commentId, deleteBy)
 }

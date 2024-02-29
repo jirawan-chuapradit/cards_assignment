@@ -3,8 +3,11 @@ package handler
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jirawan-chuapradit/cards_assignment/auth"
+	"github.com/jirawan-chuapradit/cards_assignment/config"
 	"github.com/jirawan-chuapradit/cards_assignment/models/request"
 	"github.com/jirawan-chuapradit/cards_assignment/models/response"
 	"github.com/jirawan-chuapradit/cards_assignment/service"
@@ -18,12 +21,14 @@ type CommentHandler interface {
 }
 
 type commentHandler struct {
-	commentServ service.CommentService
+	tokenManager auth.TokenInterface
+	commentServ  service.CommentService
 }
 
 func NewCommentHandler(commentServ service.CommentService) CommentHandler {
 	return &commentHandler{
-		commentServ: commentServ,
+		tokenManager: auth.NewTokenService(),
+		commentServ:  commentServ,
 	}
 }
 
@@ -77,7 +82,6 @@ func (h *commentHandler) Update(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, webResponse)
 		return
 	}
-	_ = objID
 
 	updateCommentRequest := request.UpdateCommentBody{}
 	if err := ctx.ShouldBindJSON(&updateCommentRequest); err != nil {
@@ -104,6 +108,22 @@ func (h *commentHandler) Update(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, webResponse)
 	}
 
+	metadata, err := h.tokenManager.ExtractTokenMetadata(ctx.Request)
+	if err != nil {
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not update comment because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
+	}
+	now := time.Now().In(config.Location)
+	updateCommentRequest.UpdatedBy = metadata.UserName
+	updateCommentRequest.UpdatedAt = &now
+
 	if err := h.commentServ.Update(ctx, updateCommentRequest); err != nil {
 		log.Println(err)
 		webResponse := response.Response{
@@ -129,7 +149,7 @@ func (h *commentHandler) Update(ctx *gin.Context) {
 func (h *commentHandler) Delete(ctx *gin.Context) {
 	commentId := ctx.Param("commentId")
 	objID, err := primitive.ObjectIDFromHex(commentId)
-	if err != nil { // TODO: handle
+	if err != nil {
 		log.Println(err)
 		webResponse := response.Response{
 			Code:   http.StatusBadRequest,
@@ -141,7 +161,20 @@ func (h *commentHandler) Delete(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, webResponse)
 		return
 	}
-	if err := h.commentServ.Delete(ctx, objID); err != nil {
+	metadata, err := h.tokenManager.ExtractTokenMetadata(ctx.Request)
+	if err != nil {
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not update comment because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
+	}
+
+	if err := h.commentServ.Delete(ctx, objID, metadata.UserName); err != nil {
 		webResponse := response.Response{
 			Code:   http.StatusInternalServerError,
 			Status: "Failed",
