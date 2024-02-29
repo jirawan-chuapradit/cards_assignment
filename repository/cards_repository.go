@@ -85,7 +85,8 @@ func (r *cardsRepository) Create(ctx context.Context, card models.CardsDetail) (
 // update card
 func (r *cardsRepository) Update(ctx context.Context, cardReq request.UpdateCardRequestBody) error {
 	filter := map[string]interface{}{
-		"_id": cardReq.ID,
+		"_id":        cardReq.ID,
+		"created_by": cardReq.UpdatedBy,
 	}
 	update := map[string]interface{}{
 		"$set": bson.M{

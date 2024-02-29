@@ -62,11 +62,7 @@ func (s *cardsService) Create(ctx context.Context, cardReq request.CreateCardReq
 
 // update card
 func (s *cardsService) Update(ctx context.Context, cardReq request.UpdateCardRequestBody) error {
-	// TODO: validate created  equal user session
-
 	// repository
-	now := time.Now().In(config.Location)
-	cardReq.UpdatedAt = &now
 	return s.cardsRepository.Update(ctx, cardReq)
 }
 

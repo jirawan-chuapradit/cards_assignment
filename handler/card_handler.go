@@ -3,8 +3,11 @@ package handler
 import (
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/jirawan-chuapradit/cards_assignment/auth"
+	"github.com/jirawan-chuapradit/cards_assignment/config"
 	"github.com/jirawan-chuapradit/cards_assignment/models/request"
 	"github.com/jirawan-chuapradit/cards_assignment/models/response"
 	"github.com/jirawan-chuapradit/cards_assignment/service"
@@ -21,11 +24,13 @@ type CardsHandler interface {
 }
 
 type cardsHandler struct {
+	tokenManager auth.TokenInterface
 	cardsService service.CardsService
 }
 
 func NewCardsHandler(cardsServ service.CardsService) CardsHandler {
 	return &cardsHandler{
+		tokenManager: auth.NewTokenService(),
 		cardsService: cardsServ,
 	}
 }
@@ -33,8 +38,16 @@ func NewCardsHandler(cardsServ service.CardsService) CardsHandler {
 func (h *cardsHandler) FindById(ctx *gin.Context) {
 	cardId := ctx.Param("cardId")
 	objID, err := primitive.ObjectIDFromHex(cardId)
-	if err != nil { // TODO: handle
+	if err != nil {
 		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "card not found",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, webResponse)
 		return
 	}
 	cardDetails, err := h.cardsService.FindById(ctx, objID)
@@ -111,6 +124,7 @@ func (h *cardsHandler) Create(ctx *gin.Context) {
 
 		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, webResponse)
+		return
 	}
 
 	card, err := h.cardsService.Create(ctx, createCardRequest)
@@ -124,6 +138,7 @@ func (h *cardsHandler) Create(ctx *gin.Context) {
 
 		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
 	}
 
 	webResponse := response.Response{
@@ -133,7 +148,6 @@ func (h *cardsHandler) Create(ctx *gin.Context) {
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusCreated, webResponse)
-
 }
 
 func (h *cardsHandler) Update(ctx *gin.Context) {
@@ -149,12 +163,21 @@ func (h *cardsHandler) Update(ctx *gin.Context) {
 
 		ctx.Header("Content-Type", "application/json")
 		ctx.JSON(http.StatusBadRequest, webResponse)
+		return
 	}
 
 	cardId := ctx.Param("cardId")
 	objID, err := primitive.ObjectIDFromHex(cardId)
-	if err != nil { // TODO: handle
+	if err != nil {
 		log.Println(err)
+		webResponse := response.Response{
+			Code:   http.StatusBadRequest,
+			Status: "Failed",
+			Data:   "can not update cards because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusBadRequest, webResponse)
 		return
 	}
 
@@ -170,6 +193,23 @@ func (h *cardsHandler) Update(ctx *gin.Context) {
 		ctx.JSON(http.StatusBadRequest, webResponse)
 		return
 	}
+
+	metadata, err := h.tokenManager.ExtractTokenMetadata(ctx.Request)
+	if err != nil {
+		webResponse := response.Response{
+			Code:   http.StatusInternalServerError,
+			Status: "Failed",
+			Data:   "can not update comment because internal server error",
+		}
+
+		ctx.Header("Content-Type", "application/json")
+		ctx.JSON(http.StatusInternalServerError, webResponse)
+		return
+	}
+	updateCardRequest.UpdatedBy = metadata.UserName
+	now := time.Now().In(config.Location)
+	updateCardRequest.UpdatedAt = &now
+
 	// service
 	if err := h.cardsService.Update(ctx, updateCardRequest); err != nil {
 		log.Println(err)
@@ -190,7 +230,6 @@ func (h *cardsHandler) Update(ctx *gin.Context) {
 	}
 	ctx.Header("Content-Type", "application/json")
 	ctx.JSON(http.StatusOK, webResponse)
-
 }
 
 func (h *cardsHandler) Store(ctx *gin.Context) {
