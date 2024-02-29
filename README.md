@@ -1,7 +1,5 @@
 # cards_assignment
 
 TODO: docker compose
-TODO: login
-TODO: logout
-TODO: authorize
+TODO: rate limit
 TODO: swagger (optional)
