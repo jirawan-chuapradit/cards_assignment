@@ -5,7 +5,6 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/jirawan-chuapradit/cards_assignment/auth"
-	"github.com/jirawan-chuapradit/cards_assignment/models"
 	"github.com/jirawan-chuapradit/cards_assignment/models/request"
 	"github.com/jirawan-chuapradit/cards_assignment/models/response"
 	"github.com/jirawan-chuapradit/cards_assignment/service"
@@ -65,7 +64,7 @@ func (h *authHandler) SignUp(c *gin.Context) {
 	c.JSON(http.StatusOK, webResponse)
 }
 func (h *authHandler) Login(c *gin.Context) {
-	var u models.Login
+	var u request.Login
 	if err := c.ShouldBindJSON(&u); err != nil {
 		webResponse := response.Response{
 			Code:   http.StatusBadRequest,

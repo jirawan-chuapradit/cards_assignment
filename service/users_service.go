@@ -16,7 +16,7 @@ import (
 
 type UsersService interface {
 	CreateUser(ctx context.Context, userReq request.SignUp) error
-	ValidateUser(ctx context.Context, userReq models.Login) (models.User, error)
+	ValidateUser(ctx context.Context, userReq request.Login) (models.User, error)
 }
 
 type usersService struct {
@@ -50,7 +50,7 @@ func (s *usersService) CreateUser(ctx context.Context, userReq request.SignUp) e
 	return s.usersRepository.Create(ctx, user)
 }
 
-func (s *usersService) ValidateUser(ctx context.Context, userReq models.Login) (models.User, error) {
+func (s *usersService) ValidateUser(ctx context.Context, userReq request.Login) (models.User, error) {
 	user, err := s.usersRepository.FindByEmail(ctx, userReq.Email)
 	if err != nil {
 		return user, err
