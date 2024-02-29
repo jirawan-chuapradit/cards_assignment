@@ -41,8 +41,7 @@ func (h *authHandler) Login(c *gin.Context) {
 		return
 	}
 
-	auth := auth.TokenManager{}
-	ts, err := auth.CreateToken(user.ID, user.UserName)
+	ts, err := h.tokenManager.CreateToken(user.ID, user.UserName)
 	if err != nil {
 		c.JSON(http.StatusUnprocessableEntity, err.Error())
 		return

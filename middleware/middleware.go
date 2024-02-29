@@ -13,7 +13,22 @@ import (
 	"github.com/jirawan-chuapradit/cards_assignment/models/response"
 )
 
-func TokenAuthMiddleware(c *gin.Context) {
+type AuthMiddleware interface {
+	TokenAuthMiddleware(c *gin.Context)
+}
+
+type authMiddleware struct {
+	tokenManager auth.TokenInterface
+	authServ     auth.AuthInterface
+}
+
+func NewAuthMiddleware(authService auth.AuthInterface) AuthMiddleware {
+	return &authMiddleware{
+		authServ:     authService,
+		tokenManager: auth.NewTokenService(),
+	}
+}
+func (m *authMiddleware) TokenAuthMiddleware(c *gin.Context) {
 	if err := auth.TokenValid(c.Request); err != nil {
 		webResponse := response.Response{
 			Code:   http.StatusUnauthorized,
@@ -24,14 +39,36 @@ func TokenAuthMiddleware(c *gin.Context) {
 		c.Header("Content-Type", "application/json")
 		c.AbortWithStatusJSON(http.StatusUnauthorized, webResponse)
 	}
+
+	metadata, err := m.tokenManager.ExtractTokenMetadata(c.Request)
+	if err != nil {
+		webResponse := response.Response{
+			Code:   http.StatusUnauthorized,
+			Status: "Failed",
+			Data:   "unauthorized",
+		}
+
+		c.Header("Content-Type", "application/json")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, webResponse)
+	}
+	if _, err := m.authServ.FetchAuth(metadata.TokenUuid); err != nil {
+		webResponse := response.Response{
+			Code:   http.StatusUnauthorized,
+			Status: "Failed",
+			Data:   "unauthorized",
+		}
+
+		c.Header("Content-Type", "application/json")
+		c.AbortWithStatusJSON(http.StatusUnauthorized, webResponse)
+	}
 	fmt.Println("token valid")
+
 	c.Next()
 }
 
 func Authorize(obj string, act string, adapter persist.Adapter) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		err := auth.TokenValid(c.Request)
-		if err != nil {
+		if err := auth.TokenValid(c.Request); err != nil {
 			c.JSON(http.StatusUnauthorized, "user hasn't logged in yet")
 			c.Abort()
 			return

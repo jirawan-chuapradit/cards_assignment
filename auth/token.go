@@ -122,5 +122,6 @@ func TokenValid(r *http.Request) error {
 	if !token.Valid {
 		return err
 	}
+
 	return nil
 }

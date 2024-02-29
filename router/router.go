@@ -25,10 +25,9 @@ func Setup(server models.Server) *gin.Engine {
 
 	authorized := r.Group("/")
 
-	authorized.Use(gin.Logger())
-	authorized.Use(gin.Recovery())
-
-	authorized.Use(middleware.TokenAuthMiddleware)
+	// middleware
+	authMiddleware := middleware.NewAuthMiddleware(authServ)
+	authorized.Use(authMiddleware.TokenAuthMiddleware)
 	{
 		authorized.GET("/test", middleware.Authorize("resource", "read", fileadapter), handler.TestAPI)
 		authorized.POST("/logout", authHandler.Logout)
