@@ -23,15 +23,17 @@ func Setup(server models.Server) *gin.Engine {
 
 	r.POST("/login", authHandler.Login)
 
-	baseRouter := r.Group("/api")
-	baseRouter.Use(gin.Logger())
-	baseRouter.Use(gin.Recovery())
+	authorized := r.Group("/")
 
-	baseRouter.Use(middleware.TokenAuthMiddleware)
+	authorized.Use(gin.Logger())
+	authorized.Use(gin.Recovery())
+
+	authorized.Use(middleware.TokenAuthMiddleware)
 	{
-		baseRouter.GET("/test", middleware.Authorize("resource", "read", fileadapter), handler.TestAPI)
+		authorized.GET("/test", middleware.Authorize("resource", "read", fileadapter), handler.TestAPI)
+		authorized.POST("/logout", authHandler.Logout)
 	}
-
+	baseRouter := r.Group("/api")
 	// repository
 	cardsRepository := repository.NewCardsRepository(conn)
 	cardsHistoryRepository := repository.NewCardsHistoryRepository(conn)

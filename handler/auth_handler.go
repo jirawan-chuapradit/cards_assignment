@@ -11,6 +11,7 @@ import (
 
 type AuthHandler interface {
 	Login(c *gin.Context)
+	Logout(c *gin.Context)
 }
 
 type authHandler struct {
