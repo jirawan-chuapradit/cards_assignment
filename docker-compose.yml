@@ -19,6 +19,14 @@ services:
     networks:
       - mongo_net
 
+  app:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    networks:
+      - mongo_net
 
 networks:
   mongo_net:
